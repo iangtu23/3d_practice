@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://threejs.org/build/three.min.js"></script>
+    <link rel="stylesheet" href="loading.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.min.js"></script>
     <script src="https://threejs.org/examples/js/controls/PointerLockControls.js"></script>
+    <script src='https://cdn.jsdelivr.net/gh/mrdoob/Three.js@r92/examples/js/loaders/GLTFLoader.js'></script>
     <meta charset="utf-8" />
     <title>My first three.js app</title>
     <style>
@@ -12,7 +14,10 @@
     </style>
   </head>
   <body>
-    <script src="fovMouse.js"></script>
+    <!-- The loading element overlays all else until the model is loaded, at which point we remove this element from the DOM -->  
+    <div class="loading" id="js-loader"><div class="loader"></div></div>
+    <script src="fovMouse.js" ></script>
+    <!-- <script src="fovMouse.js" type="module"></script> -->
     <!-- <canvas id="artifactCanvas" myattr="myattr"> </canvas> -->
   </body>
 </html>
