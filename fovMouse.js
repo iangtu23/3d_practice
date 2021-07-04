@@ -107,38 +107,7 @@ function creatObjects() {
 //     }
 //   );
 
-//   // ON MOUSEMOVE HIGHLIGHT MODEL
-
-//   renderer.domElement.addEventListener("mousemove", function (event) {
-//     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-//     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-//     raycaster.setFromCamera(mouse, camera);
-
-//     var intersects = raycaster.intersectObjects(scene.children);
-
-//     if (intersects.length > 0) {
-//       console.log(raycaster.params);
-//       document.querySelector("html").style.cursor = "pointer";
-//       document.querySelector("body").style.cursor = "pointer";
-
-//       if (INTERSECTED != intersects[0].object) {
-//         if (INTERSECTED)
-//           INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-//         INTERSECTED = intersects[0].object;
-//         INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-//         INTERSECTED.material.emissive.setHex(0xff2222);
-//       }
-//     } else {
-//       document.querySelector("html").style.cursor = "default";
-//       document.querySelector("body").style.cursor = "default";
-
-//       if (INTERSECTED)
-//         INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-
-//       INTERSECTED = null;
-//     }
-//   });
-// }
+//}
 function loadModel() {
   const loader = new THREE.GLTFLoader();
   loader.load("./skull_downloadable/scene.gltf", function (gltf) {
@@ -155,34 +124,49 @@ function loadModel() {
 }
 function animate() {
   move();
-  resetMaterials();
-  hoverPieces();
+  // resetMaterials();
+  // hoverPieces();
+  rayCast();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
-function resetMaterials() {
-  for (let i = 0; i < scene.children.length; i++) {
-    if (scene.children[i].material) {
-      scene.children[i].material.opacity = 1.0;
-    }
-  }
-}
-function hoverPieces() {
+// function resetMaterials() {
+//   for (let i = 0; i < scene.children.length; i++) {
+//     if (scene.children[i].material) {
+//       scene.children[i].material.opacity = 1.0;
+//     }
+//   }
+// }
+// function hoverPieces() {
+//   raycaster.setFromCamera(mouse, camera);
+//   const intersects = raycaster.intersectObjects(scene.children, true);
+
+//   for (let i = 0; i < intersects.length; i++) {
+//     intersects[i].object.material.transparent = true;
+//     intersects[i].object.material.opacity = 0.5;
+//   }
+// }
+function rayCast() {
+  // ON MOUSEMOVE HIGHLIGHT MODEL
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children);
 
-  for (let i = 0; i < intersects.length; i++) {
-    //  if (intersects.object.userData.rayOK) {
-    // intersects[i].object.material.color.set(0xff0000);
-    intersects[i].object.material.transparent = true;
-    intersects[i].object.material.opacity = 0.5;
-    if (model) {
-      console.log("find");
+  var intersects = raycaster.intersectObjects(scene.children, true);
+
+  if (intersects.length > 0) {
+    if (INTERSECTED != intersects[0].object) {
+      if (INTERSECTED)
+        INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+      INTERSECTED = intersects[0].object;
+      INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+      INTERSECTED.material.emissive.setHex(0xff2222);
     }
-    //  }
+  } else {
+    if (INTERSECTED)
+      INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+    INTERSECTED = null;
   }
 }
-
 function move() {
   mesh.rotation.x += 0.01;
   mesh.rotation.y += 0.02;
