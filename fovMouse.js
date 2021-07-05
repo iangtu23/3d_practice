@@ -1,7 +1,9 @@
 // import { GLTFLoader } from "./three.js-master/examples/jsm/loaders/GLTFLoader.js";
+// import * as THREE from "https://threejs.org/build/three.module.js";
+// import { GLTFLoader } from "https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js";
 
 var mesh, meshFloor, ambientLight, light, model, mouse, raycaster;
-
+//var floor;
 var USE_WIREFRAME = false;
 //var rayOK: THREE.Object3D;//type script的用法無法在此使用
 
@@ -19,9 +21,17 @@ let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
 
 var clock = new THREE.Clock();
+
 const renderer = new THREE.WebGLRenderer();
+
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(90, 1280 / 720, 0.1, 1000);
+// const camera = new THREE.PerspectiveCamera(90, 1280 / 720, 0.1, 1000);
+camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
 const controls = new THREE.PointerLockControls(camera, renderer.domElement); //カメラにPointerLockControls機能を付与
 
 init();
@@ -69,6 +79,7 @@ function creatObjects() {
   mesh.castShadow = true;
   scene.add(mesh);
 
+  //floor = new THREE.Group();
   meshFloor = new THREE.Mesh(
     new THREE.PlaneGeometry(50, 50, 10, 10),
     new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: USE_WIREFRAME })
@@ -76,6 +87,8 @@ function creatObjects() {
   meshFloor.rotation.x -= Math.PI / 2;
   meshFloor.receiveShadow = true;
   scene.add(meshFloor);
+  // floor.add(meshFloor);
+  // scene.add(floor);
 }
 // function loadModel() { // 舊的方法
 //   const MODEL_PATH = "./skull_downloadable/scene.gltf";
@@ -122,13 +135,30 @@ function loadModel() {
     loaderAnim.remove();
   });
 }
+// function animate() { //old animate
+//   move();
+//   // resetMaterials();
+//   // hoverPieces();
+//   rayCast();
+//   renderer.render(scene, camera);
+//   requestAnimationFrame(animate);
+// }
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 function animate() {
   move();
   // resetMaterials();
   // hoverPieces();
   rayCast();
+
   renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+  window.requestAnimationFrame(animate);
 }
 // function resetMaterials() {
 //   for (let i = 0; i < scene.children.length; i++) {
@@ -264,6 +294,9 @@ function onMouseMove(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
-document.body.addEventListener("keydown", onKeyDown, false); //キーボードに関するイベントリスナ登録
+document.body.addEventListener("keydown", onKeyDown, false);
 document.body.addEventListener("keyup", onKeyUp, false);
+// window.addEventListener("keydown", onKeyDown, false);
+// window.addEventListener("keyup", onKeyUp, false);
 window.addEventListener("mousemove", onMouseMove, false);
+window.addEventListener("resize", onWindowResize);
