@@ -2,6 +2,9 @@
 // import * as THREE from "https://threejs.org/build/three.module.js";
 // import { GLTFLoader } from "https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js";
 
+import { helper } from "./helper.js";
+import alpha from "./alpha.js";
+
 var mesh, meshFloor, ambientLight, light, model, mouse, raycaster;
 //var floor;
 var USE_WIREFRAME = false;
@@ -10,7 +13,7 @@ var USE_WIREFRAME = false;
 var mouse = new THREE.Vector2(),
   INTERSECTED;
 
-loaderAnim = document.getElementById("js-loader");
+var loaderAnim = document.getElementById("js-loader");
 
 let moveForward = false;
 let moveBackward = false;
@@ -26,7 +29,7 @@ const renderer = new THREE.WebGLRenderer();
 
 const scene = new THREE.Scene();
 // const camera = new THREE.PerspectiveCamera(90, 1280 / 720, 0.1, 1000);
-camera = new THREE.PerspectiveCamera(
+var camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
   0.1,
@@ -189,6 +192,13 @@ function rayCast() {
       INTERSECTED = intersects[0].object;
       INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
       INTERSECTED.material.emissive.setHex(0xff2222);
+      helper("I got you");
+      let c = new alpha();
+      c.x = 10;
+      c.y = 20;
+      c.z = 30;
+      c.say();
+      console.log(c.cubic);
     }
   } else {
     if (INTERSECTED)
@@ -214,7 +224,7 @@ function move() {
 
   let time = performance.now();
 
-  delta = clock.getDelta();
+  let delta = clock.getDelta();
   //console.log( Math.sin(time * 0.001));
   //var sine = delta * Math.sign(Math.sin(time * 0.001));
   var sine = Math.sin(time * 0.001);
