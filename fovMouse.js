@@ -1,19 +1,31 @@
-// import { GLTFLoader } from "./three.js-master/examples/jsm/loaders/GLTFLoader.js";
-// import * as THREE from "https://threejs.org/build/three.module.js";
-// import { GLTFLoader } from "https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js";
-
 import { helper } from "./helper.js";
 import alpha from "./alpha.js";
 
-var mesh, meshFloor, ambientLight, light, model, mouse, raycaster;
-//var floor;
+var mesh, meshFloor, ambientLight, light, model, raycaster;
+var rayDetected,
+  selectedPiece = null;
 var USE_WIREFRAME = false;
 //var rayOK: THREE.Object3D;//type script的用法無法在此使用
 
 var mouse = new THREE.Vector2(),
   INTERSECTED;
+var cameraPostion = new THREE.Vector3();
+var cameraDirection = new THREE.Vector3();
 
 var loaderAnim = document.getElementById("js-loader");
+
+//產生一個新的 html element
+let div = document.createElement("div");
+div.id = "words";
+div.className = "box";
+let h1 = document.createElement("h1");
+let p = document.createElement("p");
+h1.textContent = "作品介紹";
+p.textContent = "嘻嘻嘻哈哈哈啦啦啦呼呼呼嘿嘿好黑";
+div.appendChild(h1);
+div.appendChild(p);
+//找到 words html element
+let words;
 
 let moveForward = false;
 let moveBackward = false;
@@ -59,6 +71,12 @@ function init() {
 
   scene.add(controls.getObject());
   renderer.domElement.addEventListener("click", function () {
+    console.log("啊啊啊啊");
+    // 移除 html element
+    words = document.getElementById("words");
+    if (words) {
+      words.remove();
+    }
     controls.lock();
   });
 
@@ -67,6 +85,9 @@ function init() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.BasicShadowMap;
   document.body.appendChild(renderer.domElement);
+
+  rayDetected = new THREE.Group();
+  scene.add(rayDetected);
 
   creatObjects();
   loadModel();
@@ -80,9 +101,9 @@ function creatObjects() {
   mesh.position.y += 3;
   mesh.receiveShadow = true;
   mesh.castShadow = true;
-  scene.add(mesh);
+  rayDetected.add(mesh);
+  //scene.add(mesh);
 
-  //floor = new THREE.Group();
   meshFloor = new THREE.Mesh(
     new THREE.PlaneGeometry(50, 50, 10, 10),
     new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: USE_WIREFRAME })
@@ -93,37 +114,7 @@ function creatObjects() {
   // floor.add(meshFloor);
   // scene.add(floor);
 }
-// function loadModel() { // 舊的方法
-//   const MODEL_PATH = "./skull_downloadable/scene.gltf";
-//   var loader = new THREE.GLTFLoader();
-//   loader.load(
-//     MODEL_PATH,
-//     function (gltf) {
-//       model = gltf.scene;
-//       let fileAnimations = gltf.animations;
-//       model.traverse((o) => {
-//         if (o.isMesh) {
-//           o.castShadow = true;
-//           o.receiveShadow = true;
-//         }
-//       });
-//       // Set the models initial scale
-//       model.scale.set(2.5, 2.5, 2.5);
-//       model.position.y = 7;
-//       model.position.z = -2;
-//       model.rotation.y = 9.5;
-//       model.rotation.x = -1;
 
-//       scene.add(model);
-//       loaderAnim.remove();
-//     },
-//     undefined, // We don't need this function
-//     function (error) {
-//       console.error(error);
-//     }
-//   );
-
-//}
 function loadModel() {
   const loader = new THREE.GLTFLoader();
   loader.load("./skull_downloadable/scene.gltf", function (gltf) {
@@ -134,18 +125,11 @@ function loadModel() {
     model.position.z = -2;
     model.rotation.y = 9.5;
     model.rotation.x = -1;
-    scene.add(model);
+    //scene.add(model);
+    rayDetected.add(model);
     loaderAnim.remove();
   });
 }
-// function animate() { //old animate
-//   move();
-//   // resetMaterials();
-//   // hoverPieces();
-//   rayCast();
-//   renderer.render(scene, camera);
-//   requestAnimationFrame(animate);
-// }
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -156,34 +140,21 @@ function onWindowResize() {
 
 function animate() {
   move();
-  // resetMaterials();
-  // hoverPieces();
   rayCast();
 
   renderer.render(scene, camera);
   window.requestAnimationFrame(animate);
 }
-// function resetMaterials() {
-//   for (let i = 0; i < scene.children.length; i++) {
-//     if (scene.children[i].material) {
-//       scene.children[i].material.opacity = 1.0;
-//     }
-//   }
-// }
-// function hoverPieces() {
-//   raycaster.setFromCamera(mouse, camera);
-//   const intersects = raycaster.intersectObjects(scene.children, true);
-
-//   for (let i = 0; i < intersects.length; i++) {
-//     intersects[i].object.material.transparent = true;
-//     intersects[i].object.material.opacity = 0.5;
-//   }
-// }
 function rayCast() {
   // ON MOUSEMOVE HIGHLIGHT MODEL
-  raycaster.setFromCamera(mouse, camera);
+  //raycaster.setFromCamera(mouse, camera);
+  // var cameraPostion = new THREE.Vector3();
+  // var cameraDirection = new THREE.Vector3();
+  camera.getWorldPosition(cameraPostion);
+  camera.getWorldDirection(cameraDirection);
+  raycaster.set(cameraPostion, cameraDirection);
 
-  var intersects = raycaster.intersectObjects(scene.children, true);
+  var intersects = raycaster.intersectObjects(rayDetected.children, true);
 
   if (intersects.length > 0) {
     if (INTERSECTED != intersects[0].object) {
@@ -207,6 +178,47 @@ function rayCast() {
     INTERSECTED = null;
   }
 }
+
+function onClick(event) {
+  // raycaster.setFromCamera(mouse, camera);
+  camera.getWorldPosition(cameraPostion);
+  camera.getWorldDirection(cameraDirection);
+  raycaster.set(cameraPostion, cameraDirection);
+  let intersects = raycaster.intersectObjects(rayDetected.children, true);
+  if (intersects.length > 0) {
+    //顯示 words html element
+    document.body.appendChild(div);
+    div.style.animation = "boxBGShow 0.2s";
+    //讓鼠標出現
+    controls.unlock();
+
+    // selectedPiece = intersects[0].object.userData.currentSquare;
+  }
+
+  // if (selectedPiece) {
+  //   raycaster.setFromCamera(mouse, camera);
+  //   intersects = raycaster.intersectObjects(rayDetected.children);
+
+  //   if (intersects.length > 0 && intersects[0].object.userData.squareNumber) {
+  //     const targetSquare = intersects[0].object.userData.squareNumber;
+  //     const selectedObject = scene.children.find(
+  //       (child) => child.userData.currentSquare == selectedPiece
+  //     );
+  //     if (!selectedObject || !targetSquare) return;
+
+  //     const targetPosition = positionForSquare(targetSquare);
+  //     selectedObject.position.set(
+  //       targetPosition.x,
+  //       selectedObject.position.y,
+  //       targetPosition.z
+  //     );
+  //     selectedObject.currentSquare = targetSquare;
+
+  //     selectedPiece = null;
+  //   }
+  // }
+}
+
 function move() {
   mesh.rotation.x += 0.01;
   mesh.rotation.y += 0.02;
@@ -214,31 +226,15 @@ function move() {
   if (model) {
     model.rotation.y += 0.02;
     model.rotation.x += 0.02;
-
-    // model.scale.x += sine;
-    // model.scale.y += sine;
-    // model.scale.z += sine;
-    // console.log(sine);
-    //can't access lexical declaration 'time' before initialization
   }
 
   let time = performance.now();
-
-  let delta = clock.getDelta();
-  //console.log( Math.sin(time * 0.001));
-  //var sine = delta * Math.sign(Math.sin(time * 0.001));
   var sine = Math.sin(time * 0.001);
-  //console.log(Math.sign(Math.sin(time * 0.001)));
-  //mesh.position.y += 2.5 * sine;
-  mesh.position.y -= 0.08 * sine;
 
+  mesh.position.y -= 0.08 * sine;
   mesh.scale.x -= 0.05 * sine;
   mesh.scale.y -= 0.05 * sine;
   mesh.scale.z -= 0.05 * sine;
-
-  // mesh.scale.x += 1.5 * sine;
-  // mesh.scale.y += 1.5 * sine;
-  // mesh.scale.z += 1.5 * sine;
 
   if (controls.isLocked === true) {
     //マウスのポインタがロックされているときのみ有効
@@ -277,6 +273,22 @@ let onKeyDown = function (event) {
       moveRight = true;
       break;
   }
+
+  //問題：要怎麼樣讓boxBGHide動畫結束後，再words.remove();???
+  // function boxHide() {
+  //   div.style.animation = "boxBGHide 0.2s";
+  //   return;
+  // }
+  // boxHide(1, words.remove());
+
+  // 移除 html element
+  words = document.getElementById("words");
+  if (words) {
+    //div.style.animation = "boxBGHide 0.2s";
+    words.remove();
+  }
+  //讓鼠標隱藏
+  controls.lock();
 };
 
 let onKeyUp = function (event) {
@@ -306,7 +318,7 @@ function onMouseMove(event) {
 }
 document.body.addEventListener("keydown", onKeyDown, false);
 document.body.addEventListener("keyup", onKeyUp, false);
-// window.addEventListener("keydown", onKeyDown, false);
-// window.addEventListener("keyup", onKeyUp, false);
+
 window.addEventListener("mousemove", onMouseMove, false);
+window.addEventListener("click", onClick);
 window.addEventListener("resize", onWindowResize);

@@ -5,6 +5,7 @@ html {
 
   padding: 0;
   background: #25252b;
+  overflow: hidden;
 }
 * {
   touch-action: manipulation;
@@ -70,7 +71,49 @@ html {
   background-color: #ff0000;
   animation: flip 1s infinite;
 }
-
+.line1 {
+  width: 10px;
+  border-bottom: 2px solid red;
+  transform: rotate(0deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.line2 {
+  width: 10px;
+  border-bottom: 2px solid red;
+  transform: rotate(-90deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.box {
+  background-color: white;
+  opacity: 50%;
+  width: 300px;
+  border: 1px solid white;
+  padding: 50px;
+  margin: 20px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+@keyframes boxBGShow {
+  from {
+    scale: 0%;
+  }
+  to {
+    scale: 100%;
+  }
+}
+@keyframes boxBGHide {
+  from {
+    scale: 100%;
+  }
+  to {
+    scale: 0%;
+  }
+}
 @keyframes flip {
   0% {
     transform: rotate(0);
