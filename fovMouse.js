@@ -5,7 +5,6 @@ var mesh, meshFloor, ambientLight, light, model, raycaster;
 var rayDetected,
   selectedPiece = null;
 var USE_WIREFRAME = false;
-//var rayOK: THREE.Object3D;//type script的用法無法在此使用
 
 var mouse = new THREE.Vector2(),
   INTERSECTED;
@@ -71,7 +70,6 @@ function init() {
 
   scene.add(controls.getObject());
   renderer.domElement.addEventListener("click", function () {
-    console.log("啊啊啊啊");
     // 移除 html element
     words = document.getElementById("words");
     if (words) {
@@ -93,17 +91,18 @@ function init() {
   loadModel();
 }
 function creatObjects() {
+  //方塊物件
   mesh = new THREE.Mesh(
     new THREE.BoxGeometry(1.5, 1.5, 1.5),
     new THREE.MeshPhongMaterial({ color: 0xff4444, wireframe: USE_WIREFRAME }) // Color is given in hexadecimal RGB
   );
-  //mesh.userData.rayOK = true;//要指定mesh是可以被raycast的物件
   mesh.position.y += 3;
   mesh.receiveShadow = true;
   mesh.castShadow = true;
   rayDetected.add(mesh);
-  //scene.add(mesh);
+  mesh.name = "Cube";
 
+  //地板物件
   meshFloor = new THREE.Mesh(
     new THREE.PlaneGeometry(50, 50, 10, 10),
     new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: USE_WIREFRAME })
@@ -119,7 +118,6 @@ function loadModel() {
   const loader = new THREE.GLTFLoader();
   loader.load("./skull_downloadable/scene.gltf", function (gltf) {
     model = gltf.scene;
-
     model.scale.set(2.5, 2.5, 2.5);
     model.position.y = 7;
     model.position.z = -2;
@@ -127,6 +125,14 @@ function loadModel() {
     model.rotation.x = -1;
     //scene.add(model);
     rayDetected.add(model);
+    model.name = "Skull"; //問題：為什麼model的名字無法顯示在log上面，mesh卻可以？
+
+    // var skullModel = new THREE.Object3D();
+    // model.userData.parent = skullModel;
+    // skullModel.add(model);
+    // skullModel.name = "Skull";
+    // scene.add(skullModel);
+
     loaderAnim.remove();
   });
 }
@@ -155,21 +161,28 @@ function rayCast() {
   raycaster.set(cameraPostion, cameraDirection);
 
   var intersects = raycaster.intersectObjects(rayDetected.children, true);
+  //var intersects = raycaster.intersectObjects(scene.children, true);
 
   if (intersects.length > 0) {
+    var name = intersects[0].object.name;
+    console.log("found: " + name);
+
+    // console.log("GROUP IS " + intersects[0].object.userData.parent.name);
+
     if (INTERSECTED != intersects[0].object) {
       if (INTERSECTED)
         INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
       INTERSECTED = intersects[0].object;
       INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
       INTERSECTED.material.emissive.setHex(0xff2222);
-      helper("I got you");
-      let c = new alpha();
-      c.x = 10;
-      c.y = 20;
-      c.z = 30;
-      c.say();
-      console.log(c.cubic);
+
+      // helper("I got you");
+      // let c = new alpha();
+      // c.x = 10;
+      // c.y = 20;
+      // c.z = 30;
+      // c.say();
+      // console.log(c.cubic);
     }
   } else {
     if (INTERSECTED)
@@ -191,32 +204,7 @@ function onClick(event) {
     div.style.animation = "boxBGShow 0.2s";
     //讓鼠標出現
     controls.unlock();
-
-    // selectedPiece = intersects[0].object.userData.currentSquare;
   }
-
-  // if (selectedPiece) {
-  //   raycaster.setFromCamera(mouse, camera);
-  //   intersects = raycaster.intersectObjects(rayDetected.children);
-
-  //   if (intersects.length > 0 && intersects[0].object.userData.squareNumber) {
-  //     const targetSquare = intersects[0].object.userData.squareNumber;
-  //     const selectedObject = scene.children.find(
-  //       (child) => child.userData.currentSquare == selectedPiece
-  //     );
-  //     if (!selectedObject || !targetSquare) return;
-
-  //     const targetPosition = positionForSquare(targetSquare);
-  //     selectedObject.position.set(
-  //       targetPosition.x,
-  //       selectedObject.position.y,
-  //       targetPosition.z
-  //     );
-  //     selectedObject.currentSquare = targetSquare;
-
-  //     selectedPiece = null;
-  //   }
-  // }
 }
 
 function move() {
