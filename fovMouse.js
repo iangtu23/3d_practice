@@ -1,10 +1,13 @@
-import { helper } from "./helper.js";
+import { helper, text } from "./helper.js";
 import alpha from "./alpha.js";
 
 var mesh, meshFloor, ambientLight, light, model, raycaster;
 var rayDetected,
   selectedPiece = null;
 var USE_WIREFRAME = false;
+
+var last = Date.now(),
+  req;
 
 var mouse = new THREE.Vector2(),
   INTERSECTED;
@@ -17,10 +20,10 @@ var loaderAnim = document.getElementById("js-loader");
 let div = document.createElement("div");
 div.id = "words";
 div.className = "box";
-let h1 = document.createElement("h1");
+let h1 = document.createElement("h2");
 let p = document.createElement("p");
-h1.textContent = "作品介紹";
-p.textContent = "嘻嘻嘻哈哈哈啦啦啦呼呼呼嘿嘿好黑";
+// h1.textContent = name + "作品介紹";
+// p.textContent = "嘻嘻嘻哈哈哈啦啦啦呼呼呼嘿嘿好黑";
 div.appendChild(h1);
 div.appendChild(p);
 //找到 words html element
@@ -49,6 +52,7 @@ var camera = new THREE.PerspectiveCamera(
 const controls = new THREE.PointerLockControls(camera, renderer.domElement); //カメラにPointerLockControls機能を付与
 
 init();
+
 animate();
 
 function init() {
@@ -68,15 +72,15 @@ function init() {
   light.shadow.camera.far = 25;
   scene.add(light);
 
-  scene.add(controls.getObject());
-  renderer.domElement.addEventListener("click", function () {
-    // 移除 html element
-    words = document.getElementById("words");
-    if (words) {
-      words.remove();
-    }
-    controls.lock();
-  });
+  // scene.add(controls.getObject());
+  // renderer.domElement.addEventListener("click", function () {
+  //   // 移除 html element
+  //   words = document.getElementById("words");
+  //   if (words) {
+  //     words.remove();
+  //   }
+  //   controls.lock();
+  // });
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -149,7 +153,7 @@ function animate() {
   rayCast();
 
   renderer.render(scene, camera);
-  window.requestAnimationFrame(animate);
+  req = window.requestAnimationFrame(animate);
 }
 function rayCast() {
   // ON MOUSEMOVE HIGHLIGHT MODEL
@@ -165,7 +169,7 @@ function rayCast() {
 
   if (intersects.length > 0) {
     var name = intersects[0].object.name;
-    console.log("found: " + name);
+    // console.log("found: " + name);
 
     // console.log("GROUP IS " + intersects[0].object.userData.parent.name);
 
@@ -176,7 +180,9 @@ function rayCast() {
       INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
       INTERSECTED.material.emissive.setHex(0xff2222);
 
-      // helper("I got you");
+      helper(name);
+      h1.textContent = name;
+      p.textContent = text;
       // let c = new alpha();
       // c.x = 10;
       // c.y = 20;
@@ -204,6 +210,10 @@ function onClick(event) {
     div.style.animation = "boxBGShow 0.2s";
     //讓鼠標出現
     controls.unlock();
+
+    // 暫停動畫
+    cancelAnimationFrame(req);
+    req = undefined;
   }
 }
 
@@ -277,6 +287,12 @@ let onKeyDown = function (event) {
   }
   //讓鼠標隱藏
   controls.lock();
+
+  // 開始動畫
+  if (!req) {
+    last = Date.now();
+    animate();
+  }
 };
 
 let onKeyUp = function (event) {
