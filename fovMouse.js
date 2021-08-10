@@ -1,14 +1,34 @@
 import { helper, text } from "./helper.js";
-import alpha from "./alpha.js";
+import { creatObjects, mesh } from "./creatObjects.js";
+import {
+  init,
+  onWindowResize,
+  rayDetected,
+  camera,
+  raycaster,
+  renderer,
+  scene,
+} from "./init.js";
+// import {
+//   controlInMove,
+//   time,
+//   moveForward,
+//   moveBackward,
+//   moveLeft,
+//   moveRight,
+// } from "./fov.js";
 
-var mesh, meshFloor, ambientLight, light, model, raycaster;
-var rayDetected,
-  selectedPiece = null;
-var USE_WIREFRAME = false;
+//import alpha from "./alpha.js";
 
+//var mesh,meshFloor,USE_WIREFRAME = false, ambientLight, light, , raycaster, rayDetected;
+//var selectedPiece = null;
+var model;
+
+//動畫暫停使用變數
 var last = Date.now(),
   req;
 
+//與raycast()相關變數
 var mouse = new THREE.Vector2(),
   INTERSECTED;
 var cameraPostion = new THREE.Vector3();
@@ -29,6 +49,7 @@ div.appendChild(p);
 //找到 words html element
 let words;
 
+//fov變數使用在move()裡
 let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
@@ -36,87 +57,14 @@ let moveRight = false;
 let prevTime = performance.now(); //1フレーム前の時刻を記憶
 let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
-
-var clock = new THREE.Clock();
-
-const renderer = new THREE.WebGLRenderer();
-
-const scene = new THREE.Scene();
-// const camera = new THREE.PerspectiveCamera(90, 1280 / 720, 0.1, 1000);
-var camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+//var clock = new THREE.Clock();
 const controls = new THREE.PointerLockControls(camera, renderer.domElement); //カメラにPointerLockControls機能を付与
 
+creatObjects();
+loadModel();
 init();
 
 animate();
-
-function init() {
-  raycaster = new THREE.Raycaster();
-
-  camera.position.set(0, 1.8, -5);
-  camera.lookAt(new THREE.Vector3(0, 1.8, 0));
-
-  ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-  scene.add(ambientLight);
-
-  light = new THREE.PointLight(0xffffff, 0.8, 18);
-  light.position.set(-3, 9, -5);
-  light.castShadow = true;
-  // Will not light anything closer than 0.1 units or further than 25 units
-  light.shadow.camera.near = 0.1;
-  light.shadow.camera.far = 25;
-  scene.add(light);
-
-  // scene.add(controls.getObject());
-  // renderer.domElement.addEventListener("click", function () {
-  //   // 移除 html element
-  //   words = document.getElementById("words");
-  //   if (words) {
-  //     words.remove();
-  //   }
-  //   controls.lock();
-  // });
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.BasicShadowMap;
-  document.body.appendChild(renderer.domElement);
-
-  rayDetected = new THREE.Group();
-  scene.add(rayDetected);
-
-  creatObjects();
-  loadModel();
-}
-function creatObjects() {
-  //方塊物件
-  mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1.5, 1.5, 1.5),
-    new THREE.MeshPhongMaterial({ color: 0xff4444, wireframe: USE_WIREFRAME }) // Color is given in hexadecimal RGB
-  );
-  mesh.position.y += 3;
-  mesh.receiveShadow = true;
-  mesh.castShadow = true;
-  rayDetected.add(mesh);
-  mesh.name = "Cube";
-
-  //地板物件
-  meshFloor = new THREE.Mesh(
-    new THREE.PlaneGeometry(50, 50, 10, 10),
-    new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: USE_WIREFRAME })
-  );
-  meshFloor.rotation.x -= Math.PI / 2;
-  meshFloor.receiveShadow = true;
-  scene.add(meshFloor);
-  // floor.add(meshFloor);
-  // scene.add(floor);
-}
 
 function loadModel() {
   const loader = new THREE.GLTFLoader();
@@ -139,13 +87,6 @@ function loadModel() {
 
     loaderAnim.remove();
   });
-}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function animate() {
@@ -226,7 +167,9 @@ function move() {
     model.rotation.x += 0.02;
   }
 
+  //移動的方塊與滑鼠視角使用time
   let time = performance.now();
+
   var sine = Math.sin(time * 0.001);
 
   mesh.position.y -= 0.08 * sine;
@@ -234,6 +177,7 @@ function move() {
   mesh.scale.y -= 0.05 * sine;
   mesh.scale.z -= 0.05 * sine;
 
+  //fov計算
   if (controls.isLocked === true) {
     //マウスのポインタがロックされているときのみ有効
     let delta = (time - prevTime) / 5000;
